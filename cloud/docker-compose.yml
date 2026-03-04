@@ -1,0 +1,54 @@
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto_cloud.conf:/mosquitto/config/mosquitto.conf
+
+  timescaledb:
+    image: timescale/timescaledb:latest-pg15
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ttc_fleet
+      POSTGRES_USER: ttc
+      POSTGRES_PASSWORD: ttc_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - timescale_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  cloud-logger:
+    build:
+      context: .
+      dockerfile: logger/Dockerfile
+    restart: unless-stopped
+    environment:
+      MQTT_BROKER_HOST: mosquitto
+      DB_HOST: timescaledb
+      POSTGRES_DB: ttc_fleet
+      POSTGRES_USER: ttc
+      POSTGRES_PASSWORD: ttc_pass
+    depends_on:
+      - mosquitto
+      - timescaledb
+
+  nginx-proxy-manager:
+    image: jc21/nginx-proxy-manager:latest
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "81:81"
+    environment:
+      TZ: "Australia/Brisbane"
+    volumes:
+      - npm_data:/data
+      - npm_letsencrypt:/etc/letsencrypt
+
+volumes:
+  timescale_data:
+  npm_data:
+  npm_letsencrypt:

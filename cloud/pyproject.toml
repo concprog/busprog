@@ -1,0 +1,8 @@
+[project]
+name = "cloud-logger"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "paho-mqtt>=2.1.0",
+    "psycopg2-binary>=2.9.11",
+]
