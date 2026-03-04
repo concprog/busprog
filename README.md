@@ -48,4 +48,4 @@ cd fog && uv run python fog_station.py
 cd cloud && docker compose up
 ```
 
-**Edge:** Flash [edge/bus_node/bus_node.ino](file:///home/ssen4/Projects/busprog/edge/bus_node/bus_node.ino) via Arduino IDE (ESP32 Dev Module, 115200 baud).
+**Edge:** Flash [edge/bus_node/bus_node.ino](edge/bus_node/bus_node.ino) via Arduino IDE (ESP32 Dev Module, 115200 baud).
