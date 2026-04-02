@@ -19,10 +19,10 @@ const int   MQTT_PORT   = 1883;
 const int STOP_TRIGGER_PIN  = 4;
 const int STATUS_LED        = 2;
 
-const unsigned long TELEMETRY_MS = 10000UL;
+const unsigned long TELEMETRY_MS = 3000UL;
 
-const uint8_t ARIMA_WIN     = 20;
-const float   ARIMA_LR      = 0.05f;
+const uint8_t ARIMA_WIN     = 5;
+const float   ARIMA_LR      = 0.4f;
 const int     DELAY_OVERRIDE = 5;
 
 // ── Section 2: Flash-Resident Stop Table ─────────────────────────
@@ -57,6 +57,7 @@ int32_t  lastDelayMin      = 0;
 
 volatile bool     stopTriggerFired = false;
 volatile uint32_t triggerTs        = 0;
+volatile uint32_t lastTriggerMs    = 0;
 
 char pendingAction[8]  = "STOP";
 char pendingReason[16] = "NOMINAL";
@@ -77,6 +78,9 @@ unsigned long lastTelemetryMs = 0;
 // ── Section 4: Hardware Trigger ISR ──────────────────────────────
 
 void IRAM_ATTR onStopTrigger() {
+  uint32_t now = millis();
+  if (now - lastTriggerMs < 500) return;
+  lastTriggerMs = now;
   stopTriggerFired = true;
   triggerTs        = millis() / 1000;
 }
@@ -135,11 +139,9 @@ void mqttCallback(char* topic, byte* payload, unsigned int len) {
   String t(topic);
 
   if (t.endsWith("/advisory")) {
-    const char* sid = doc["stop_id"] | "";
-    if (String(sid) == String(STOP_TABLE[currentStopIndex % NUM_STOPS].stop_id)) {
-      strlcpy(pendingAction, doc["action"] | "STOP", sizeof(pendingAction));
-      strlcpy(pendingReason, doc["reason"] | "NOMINAL", sizeof(pendingReason));
-    }
+    strlcpy(pendingAction, doc["action"] | "STOP", sizeof(pendingAction));
+    strlcpy(pendingReason, doc["reason"] | "NOMINAL", sizeof(pendingReason));
+    currentStopIndex = 0;
   }
 
   if (t.endsWith("/command") && doc.containsKey("route_start_epoch")) {
@@ -214,6 +216,8 @@ void setup() {
   mqtt.setServer(MQTT_BROKER, MQTT_PORT);
   mqtt.setCallback(mqttCallback);
   mqtt.setBufferSize(512);
+
+  routeStartEpoch = millis() / 1000;
 }
 
 // ── Section 8: loop() ───────────────────────────────────────────
@@ -229,6 +233,8 @@ void loop() {
       mqtt.subscribe(("ttc/fog/" + String(ROUTE_ID) + "/advisory").c_str(), 1);
       mqtt.subscribe(("ttc/fog/" + String(ROUTE_ID) + "/command").c_str(),  1);
       digitalWrite(STATUS_LED, HIGH);
+      strlcpy(pendingAction, "STOP", sizeof(pendingAction));
+      strlcpy(pendingReason, "NOMINAL", sizeof(pendingReason));
     }
   }
 

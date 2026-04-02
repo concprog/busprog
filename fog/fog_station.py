@@ -13,7 +13,7 @@ from choke_detector import detect_choke
 ROUTE_ID = "29"
 STOP_ID = "14S001"
 IDEAL_HEADWAY_SEC = 180.0
-EVAL_INTERVAL = 15
+EVAL_INTERVAL = 5
 RIDERSHIP_CSV = "Stop_Boarding_Alighting.csv"
 
 MQTT_BROKER = "localhost"
@@ -43,7 +43,7 @@ def on_connect(client, userdata, flags, rc, properties=None):
 def on_message(client, userdata, msg):
     p = json.loads(msg.payload)
     vid = p.get("vehicle_id", "")
-    ts = p.get("ts", time.time())
+    ts = time.time()
 
     if msg.topic.endswith("/delay"):
         if p.get("stop_id") == STOP_ID:
@@ -85,7 +85,11 @@ def publish_congestion(client, congestion_sec, route_mean_pred_delay):
 def publish_advisory(client, choke_state, arrival_freq, queue_length, congestion_sec):
     global last_choke_state
 
-    action = "SKIP" if choke_state == "OVERSUPPLY" else "STOP"
+    action = (
+        "SKIP"
+        if choke_state == "OVERSUPPLY"
+        else ("STOP" if choke_state == "STARVATION" else "STOP")
+    )
     advisory = {
         "stop_id": STOP_ID,
         "route_id": ROUTE_ID,

@@ -2,9 +2,9 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-COPY pyproject.toml uv.lock ./
+COPY pyproject.toml ./
 
-RUN pip install uv && uv sync --frozen --no-dev
+RUN pip install uv && uv sync --no-dev
 
 COPY cloud_logger.py .
 

@@ -6,15 +6,15 @@ from collections import deque, defaultdict
 class CongestionPredictor:
     def __init__(self, ideal_headway_sec: float):
         self.ideal_hw = ideal_headway_sec
-        self._arrivals: deque = deque(maxlen=20)
+        self._arrivals: dict = {}
 
     def record_arrival(self, vehicle_id: str, ts: float):
-        self._arrivals.append((ts, vehicle_id))
+        self._arrivals[vehicle_id] = ts
 
     def congestion(self) -> float:
         if len(self._arrivals) < 2:
             return 0.0
-        times = sorted(t for t, _ in self._arrivals)
+        times = sorted(self._arrivals.values())
         headways = [
             times[i] - times[i - 1]
             for i in range(1, len(times))
@@ -27,7 +27,7 @@ class CongestionPredictor:
     def mean_headway(self) -> float:
         if len(self._arrivals) < 2:
             return self.ideal_hw
-        times = sorted(t for t, _ in self._arrivals)
+        times = sorted(self._arrivals.values())
         hw = [
             times[i] - times[i - 1]
             for i in range(1, len(times))
@@ -37,7 +37,7 @@ class CongestionPredictor:
 
 
 class RouteDelayAggregator:
-    WINDOW_SEC = 600
+    WINDOW_SEC = 30
 
     def __init__(self):
         self._reports: dict = defaultdict(lambda: deque(maxlen=30))
@@ -48,9 +48,6 @@ class RouteDelayAggregator:
     def route_mean_pred_delay(self) -> float:
         cutoff = time.time() - self.WINDOW_SEC
         values = [
-            d
-            for records in self._reports.values()
-            for ts, d in records
-            if ts > cutoff
+            d for records in self._reports.values() for ts, d in records if ts > cutoff
         ]
         return statistics.mean(values) if values else 0.0

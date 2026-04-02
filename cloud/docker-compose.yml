@@ -1,21 +1,25 @@
 services:
   mosquitto:
     image: eclipse-mosquitto:2.0
+    network_mode: host
     restart: unless-stopped
-    ports:
-      - "1883:1883"
     volumes:
       - ./mosquitto_cloud.conf:/mosquitto/config/mosquitto.conf
 
   timescaledb:
-    image: timescale/timescaledb:latest-pg15
+    image: timescale/timescaledb:2.17.2-pg15
+    network_mode: host
     restart: unless-stopped
     environment:
       POSTGRES_DB: ttc_fleet
       POSTGRES_USER: ttc
       POSTGRES_PASSWORD: ttc_pass
-    ports:
-      - "5432:5432"
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
     volumes:
       - timescale_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -24,31 +28,27 @@ services:
     build:
       context: .
       dockerfile: logger/Dockerfile
+      network: host
+    network_mode: host
     restart: unless-stopped
     environment:
-      MQTT_BROKER_HOST: mosquitto
-      DB_HOST: timescaledb
+      MQTT_BROKER_HOST: localhost
+      DB_HOST: localhost
       POSTGRES_DB: ttc_fleet
       POSTGRES_USER: ttc
       POSTGRES_PASSWORD: ttc_pass
-    depends_on:
-      - mosquitto
-      - timescaledb
 
-  nginx-proxy-manager:
-    image: jc21/nginx-proxy-manager:latest
+  grafana:
+    image: grafana/grafana:10.2.0
+    network_mode: host
     restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-      - "81:81"
     environment:
-      TZ: "Australia/Brisbane"
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_DATABASES_POSTGRES_URL: postgres://ttc:ttc_pass@localhost:5432/ttc_fleet?sslmode=disable
     volumes:
-      - npm_data:/data
-      - npm_letsencrypt:/etc/letsencrypt
+      - ./grafana_dashboard.json:/var/lib/grafana/dashboards/bus-fleet.json
+      - ./grafana_provisioning:/etc/grafana/provisioning
 
 volumes:
   timescale_data:
-  npm_data:
-  npm_letsencrypt:

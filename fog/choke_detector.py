@@ -1,7 +1,7 @@
-SUPPLY_HIGH = 0.5
-SUPPLY_LOW = 0.15
-DEMAND_HIGH = 20
-DEMAND_LOW = 5
+SUPPLY_HIGH = 0.1
+SUPPLY_LOW = 0.02
+DEMAND_HIGH = 8
+DEMAND_LOW = 12
 
 
 def detect_choke(arrival_freq: float, queue_length: int) -> str:
