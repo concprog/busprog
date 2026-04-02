@@ -1,0 +1,12 @@
+apiVersion: 1
+
+datasources:
+  - name: postgres
+    type: postgres
+    url: localhost:5432
+    database: ttc_fleet
+    user: ttc
+    password: ttc_pass
+    jsonData:
+      sslmode: "disable"
+      timescaledb: true
