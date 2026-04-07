@@ -1,0 +1,19 @@
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    network_mode: host
+    restart: unless-stopped
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+
+  fog-station:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      MQTT_BROKER_HOST: localhost
+      MQTT_PORT: 1883
+      MQTT_USER: ttc_fog
+      MQTT_PASS: fog_secret
