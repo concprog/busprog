@@ -8,17 +8,11 @@
 #include <ArduinoJson.h>
 
 const char* ROUTE_ID    = "29";
-<<<<<<< Updated upstream
-const char* VEHICLE_ID  = "1402";
+
+const char* VEHICLE_ID  = "1401";
 const char* WIFI_SSID   = "TECNO POVA 2";
 const char* WIFI_PASS   = "WPA2 PSK";
-const char* MQTT_BROKER = "192.168.1.100";
-=======
-const char* VEHICLE_ID  = "1401";
-const char* WIFI_SSID   = "5";
-const char* WIFI_PASS   = "9122awsd225";
-const char* MQTT_BROKER = "10.51.1.61";
->>>>>>> Stashed changes
+const char* MQTT_BROKER = "10.175.136.85";
 const int   MQTT_PORT   = 1883;
 
 const int STATUS_LED = 2;

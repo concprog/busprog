@@ -23,7 +23,8 @@ CREATE TABLE IF NOT EXISTS arima_predictions (
     stop_id     TEXT,
     vehicle_id  TEXT,
     delay_min   INTEGER,
-    pred_delay  INTEGER
+    pred_delay  INTEGER,
+    arima_mse   REAL
 );
 
 SELECT create_hypertable('arima_predictions', by_range('time'), if_not_exists => TRUE);

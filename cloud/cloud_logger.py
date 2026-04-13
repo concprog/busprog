@@ -128,8 +128,8 @@ def flush():
             execute_batch(
                 cur,
                 """
-                INSERT INTO arima_predictions (time, route_id, stop_id, vehicle_id, delay_min, pred_delay)
-                VALUES (to_timestamp(%s), %s, %s, %s, %s, %s)
+                INSERT INTO arima_predictions (time, route_id, stop_id, vehicle_id, delay_min, pred_delay, arima_mse)
+                VALUES (to_timestamp(%s), %s, %s, %s, %s, %s, %s)
                 """,
                 [
                     (
@@ -139,6 +139,7 @@ def flush():
                         r.get("vehicle_id"),
                         r.get("delay_min"),
                         r.get("pred_delay"),
+                        r.get("arima_mse"),
                     )
                     for r in arima_buffer
                 ],

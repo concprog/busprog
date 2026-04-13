@@ -43,6 +43,7 @@ def on_connect(client, userdata, flags, rc, properties=None):
 def on_message(client, userdata, msg):
     p = json.loads(msg.payload)
     vid = p.get("vehicle_id", "")
+    print(f"Received message from vehicle: {vid}")
     ts = time.time()
 
     if msg.topic.endswith("/delay"):
@@ -90,6 +91,7 @@ def publish_advisory(client, choke_state, arrival_freq, queue_length, congestion
         if choke_state == "OVERSUPPLY"
         else ("STOP" if choke_state == "STARVATION" else "STOP")
     )
+    print(action)
     advisory = {
         "stop_id": STOP_ID,
         "route_id": ROUTE_ID,
